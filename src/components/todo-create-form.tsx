@@ -65,9 +65,6 @@ const TodoCreateForm = ({ closeDrawer }: TaskFormProps) => {
         });
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.task.getAllTasks.queryKey(),
-        });
         closeDrawer();
       },
     })

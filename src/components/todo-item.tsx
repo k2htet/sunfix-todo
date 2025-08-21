@@ -44,6 +44,7 @@ const TodoItem = ({
   const { transform, transition, setNodeRef } = useSortable({
     id: todo.order!,
   });
+
   return (
     <div
       key={todo.order!}
@@ -98,9 +99,11 @@ const TodoItem = ({
         </div>
 
         <div className="flex justify-between items-center">
-          <div className="text-xs text-muted-foreground">
-            Created {formatRelativeTime(todo.createdAt)}
-          </div>
+          {todo.createdAt && (
+            <div className="text-xs text-muted-foreground">
+              Created {formatRelativeTime(todo.createdAt)}
+            </div>
+          )}
           {todo.updatedAt && (
             <div className="text-xs text-muted-foreground">
               Updated {formatRelativeTime(todo.createdAt)}

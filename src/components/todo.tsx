@@ -14,7 +14,7 @@ const DrawerTodoCreateForm = withDrawer(TodoCreateForm);
 
 const triggerButton = (
   <Button
-    className="absolute bottom-4 right-4 rounded-full shadow animate-bounce"
+    className="absolute bottom-4 right-4 rounded-full shadow animate-bounce size-12"
     size="icon"
   >
     <Pencil />

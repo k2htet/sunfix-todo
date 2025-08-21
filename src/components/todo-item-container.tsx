@@ -38,6 +38,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import GlobalLoadingIndicator from "./global-lodaing-indicator";
 
 const TodoItemContainer = ({ data }: { data: Task[] }) => {
   const [selectedTodos, setSelectedTodos] = useState<Set<number>>(new Set());
@@ -58,7 +59,7 @@ const TodoItemContainer = ({ data }: { data: Task[] }) => {
 
   const mutation = useMutation(
     trpc.task.reorderTasks.mutationOptions({
-      onSuccess: () => {
+      onSettled: () => {
         queryClient.invalidateQueries({
           queryKey: trpc.task.getAllTasks.queryKey(),
         });
@@ -94,12 +95,6 @@ const TodoItemContainer = ({ data }: { data: Task[] }) => {
       const reorderdData = arrayMove(data, oldIndex, newIndex);
 
       reorderTasks(data, reorderdData, mutation.mutate);
-      // mutation.mutate(
-      //   reorderdData.map((task, index) => ({
-      //     id: task.id,
-      //     order: index + 1,
-      //   }))
-      // );
     }
   }
   const toggleSelectTodo = (id: number) => {
@@ -222,7 +217,7 @@ const TodoItemContainer = ({ data }: { data: Task[] }) => {
           </Button>
         </div>
       )}
-
+      <GlobalLoadingIndicator />
       {data.length === 0 ? (
         <div className="text-center text-xl py-8 text-muted-foreground">
           <h1>Welcome to Sunfix&apos;s todo.</h1>

@@ -89,9 +89,7 @@ export const tasks = pgTable("tasks", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true })
-    .defaultNow()
-    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }),
 });
 
 export const taskInsertSchema = createSelectSchema(tasks);
