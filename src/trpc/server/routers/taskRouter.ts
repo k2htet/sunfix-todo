@@ -41,6 +41,7 @@ export const taskRouter = createTRPCRouter({
           userId: ctx.user.id,
           order: newOrder,
           dueDate: input.dueDate,
+          priority: input.priority,
         })
         .returning();
 
