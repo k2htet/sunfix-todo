@@ -7,7 +7,7 @@ import {
   createReorderTasksCommand,
 } from "@/lib/command";
 
-import { UseMutateFunction, UseMutationResult } from "@tanstack/react-query";
+import { UseMutateFunction } from "@tanstack/react-query";
 import { TRPCClientErrorLike } from "@trpc/client";
 import { DefaultErrorShape } from "@trpc/server/unstable-core-do-not-import";
 
@@ -19,8 +19,48 @@ interface TodoStoreState {
 interface TodoStoreActions {
   deleteTask: (
     task: Task,
-    deleteMutation: UseMutationResult,
-    createMutation: UseMutationResult
+    deleteMutation: UseMutateFunction<
+      {
+        id: number;
+      }[],
+      TRPCClientErrorLike<{
+        input: {
+          id: number;
+        };
+        output: {
+          id: number;
+        }[];
+        transformer: true;
+        errorShape: DefaultErrorShape;
+      }>,
+      {
+        id: number;
+      },
+      undefined
+    >,
+    createMutation: UseMutateFunction<
+      Task,
+      TRPCClientErrorLike<{
+        input: {
+          text: string;
+          dueDate: Date;
+          priority: "Low" | "Medium" | "High";
+          completed?: boolean | undefined;
+          order?: number | undefined;
+        };
+        output: Task;
+        transformer: true;
+        errorShape: DefaultErrorShape;
+      }>,
+      {
+        text: string;
+        dueDate: Date;
+        priority: "Low" | "Medium" | "High";
+        completed?: boolean | undefined;
+        order?: number | undefined;
+      },
+      undefined
+    >
   ) => void;
   reorderTasks: (
     oldOrder: Task[],

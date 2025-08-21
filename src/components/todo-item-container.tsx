@@ -22,14 +22,14 @@ import {
 } from "@dnd-kit/sortable";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Redo, Trash2, Undo } from "lucide-react";
-import { useEffect, useId, useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import TodoItem from "./todo-item";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 
-const TodoItemContainer = ({ todos }: { todos: Task[] }) => {
+const TodoItemContainer = ({ data }: { data: Task[] }) => {
   const [selectedTodos, setSelectedTodos] = useState<Set<number>>(new Set());
-  const [data, setData] = useState<Task[]>(todos);
+  // const [data, setData] = useState<Task[]>(todos);
 
   const { reorderTasks, undo, redo } = useTodoStore();
   const canUndo = useTodoStore((state) => state.undoStack.length > 0);
@@ -80,7 +80,6 @@ const TodoItemContainer = ({ todos }: { todos: Task[] }) => {
       const newIndex = dataIds.indexOf(over.id);
       console.log(newIndex, oldIndex);
       const reorderdData = arrayMove(data, oldIndex, newIndex);
-      setData(reorderdData);
 
       reorderTasks(data, reorderdData, mutation.mutate);
       // mutation.mutate(
@@ -102,10 +101,10 @@ const TodoItemContainer = ({ todos }: { todos: Task[] }) => {
   };
 
   const toggleSelectAll = () => {
-    if (selectedTodos.size === todos.length) {
+    if (selectedTodos.size === data.length) {
       setSelectedTodos(new Set());
     } else {
-      setSelectedTodos(new Set(todos.map((todo) => todo.id)));
+      setSelectedTodos(new Set(data.map((todo) => todo.id)));
     }
   };
 
@@ -132,18 +131,13 @@ const TodoItemContainer = ({ todos }: { todos: Task[] }) => {
   //   };
   // }, []);
 
-  useEffect(() => {
-    if (todos) {
-      setData(todos);
-    }
-  }, [todos]);
   return (
     <div className="py-3">
       <div className="flex items-center gap-2 my-4 p-2 bg-muted rounded-md">
         <div className="flex items-center flex-1 justify-between p-3 bg-muted/50 rounded-lg h-10">
           <div className="flex items-center gap-2">
             <Checkbox
-              checked={selectedTodos.size === todos.length && todos.length > 0}
+              checked={selectedTodos.size === data.length && data.length > 0}
               onCheckedChange={toggleSelectAll}
               // disabled={isAnyMutationLoading}
             />

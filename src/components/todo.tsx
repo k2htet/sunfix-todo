@@ -28,7 +28,7 @@ const Todo = () => {
 
   return (
     <>
-      <TodoItemContainer todos={data} />
+      <TodoItemContainer data={data} />
       <DrawerTaskForm trigger={triggerButton} />
     </>
   );
