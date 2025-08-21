@@ -39,6 +39,8 @@ export function createDeleteTaskCommand(
         priority: "Low" | "Medium" | "High";
         completed?: boolean | undefined;
         order?: number | undefined;
+        createdAt?: Date;
+        updateAt?: Date;
       };
       output: Task;
       transformer: true;
@@ -50,6 +52,8 @@ export function createDeleteTaskCommand(
       priority: "Low" | "Medium" | "High";
       completed?: boolean | undefined;
       order?: number | undefined;
+      createdAt?: Date;
+      updateAt?: Date;
     },
     undefined
   >
@@ -65,6 +69,8 @@ export function createDeleteTaskCommand(
         priority: taskToDelete.priority,
         order: taskToDelete.order!,
         completed: taskToDelete.completed,
+        createdAt: taskToDelete.createdAt,
+        updateAt: new Date(),
       });
     },
   };

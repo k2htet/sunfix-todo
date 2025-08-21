@@ -97,8 +97,15 @@ const TodoItem = ({
           <ToDoItemCalendar todo={todo} />
         </div>
 
-        <div className="text-xs text-muted-foreground">
-          Created {formatRelativeTime(todo.createdAt)}
+        <div className="flex justify-between items-center">
+          <div className="text-xs text-muted-foreground">
+            Created {formatRelativeTime(todo.createdAt)}
+          </div>
+          {todo.updatedAt && (
+            <div className="text-xs text-muted-foreground">
+              Updated {formatRelativeTime(todo.createdAt)}
+            </div>
+          )}
         </div>
       </div>
     </div>

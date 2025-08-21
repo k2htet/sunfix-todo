@@ -10,6 +10,8 @@ const taskInsertSchema = z.object({
   priority: z.enum(["Low", "Medium", "High"]),
   completed: z.boolean().optional(),
   order: z.number().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
 });
 
 const taskUpdateSchema = z.object({

@@ -22,10 +22,22 @@ import {
 } from "@dnd-kit/sortable";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Redo, Trash2, Undo } from "lucide-react";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import TodoItem from "./todo-item";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const TodoItemContainer = ({ data }: { data: Task[] }) => {
   const [selectedTodos, setSelectedTodos] = useState<Set<number>>(new Set());
@@ -108,75 +120,112 @@ const TodoItemContainer = ({ data }: { data: Task[] }) => {
     }
   };
 
-  // useEffect(() => {
-  //   const handleKeyDown = (event: KeyboardEvent) => {
-  //     const isCtrlOrCmd = event.ctrlKey || event.metaKey; // Handles Ctrl+Z and Cmd+Z
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isCtrlOrCmd = event.ctrlKey || event.metaKey; // Handles Ctrl+Z and Cmd+Z
 
-  //     if (isCtrlOrCmd && event.key === "z") {
-  //       event.preventDefault();
-  //       useTodoStore.getState().undo();
-  //     }
+      if (isCtrlOrCmd && event.key === "z") {
+        event.preventDefault();
+        useTodoStore.getState().undo();
+      }
 
-  //     if (isCtrlOrCmd && event.key === "y") {
-  //       event.preventDefault();
-  //       useTodoStore.getState().redo();
-  //     }
-  //   };
+      if (isCtrlOrCmd && event.key === "y") {
+        event.preventDefault();
+        useTodoStore.getState().redo();
+      }
+    };
 
-  //   window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
 
-  //   // Cleanup function to remove the event listener
-  //   return () => {
-  //     window.removeEventListener("keydown", handleKeyDown);
-  //   };
-  // }, []);
+    // Cleanup function to remove the event listener
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
   return (
     <div className="py-3">
-      <div className="flex items-center gap-2 my-4 p-2 bg-muted rounded-md">
-        <div className="flex items-center flex-1 justify-between p-3 bg-muted/50 rounded-lg h-10">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={selectedTodos.size === data.length && data.length > 0}
-              onCheckedChange={toggleSelectAll}
-              // disabled={isAnyMutationLoading}
-            />
-            <span className="text-sm text-muted-foreground">
-              {selectedTodos.size === 0
-                ? "Select all"
-                : `${selectedTodos.size} selected`}
-            </span>
-          </div>
-          {selectedTodos.size > 1 && (
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() =>
-                bulkDeleteMutation.mutate(Array.from(selectedTodos))
-              }
-              className="flex items-center gap-2"
-              disabled={bulkDeleteMutation.isPending}
-            >
-              {bulkDeleteMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Trash2 className="h-4 w-4" />
+      {data.length !== 0 && (
+        <div className="flex items-center gap-2 my-4 p-2 bg-muted rounded-md">
+          <div className="flex items-center flex-1 justify-between p-3 bg-muted/50 rounded-lg h-10">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={selectedTodos.size === data.length && data.length > 0}
+                onCheckedChange={toggleSelectAll}
+                // disabled={isAnyMutationLoading}
+              />
+              <span className="text-sm text-muted-foreground">
+                {selectedTodos.size === 0
+                  ? "Select all"
+                  : `${selectedTodos.size} selected`}
+              </span>
+            </div>
+            <AlertDialog>
+              {selectedTodos.size > 1 && (
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
               )}
-            </Button>
-          )}
-        </div>
+              <AlertDialogContent className="w-[300px]">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Are you sure want to delete?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction asChild>
+                    <Button
+                      variant="destructive"
+                      disabled={bulkDeleteMutation.isPending}
+                      onClick={() =>
+                        bulkDeleteMutation.mutate(Array.from(selectedTodos))
+                      }
+                      className="text-white"
+                    >
+                      {bulkDeleteMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Confirm"
+                      )}
+                    </Button>
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
 
-        <Button onClick={undo} disabled={!canUndo} variant="outline" size="sm">
-          <Undo className="h-4 w-4 mr-2" /> Undo
-        </Button>
-        <Button onClick={redo} disabled={!canRedo} variant="outline" size="sm">
-          <Redo className="h-4 w-4 mr-2" /> Redo
-        </Button>
-      </div>
+          <Button
+            onClick={undo}
+            disabled={!canUndo}
+            variant="outline"
+            size="sm"
+          >
+            <Undo className="h-4 w-4 mr-2" /> Undo
+          </Button>
+          <Button
+            onClick={redo}
+            disabled={!canRedo}
+            variant="outline"
+            size="sm"
+          >
+            <Redo className="h-4 w-4 mr-2" /> Redo
+          </Button>
+        </div>
+      )}
 
       {data.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          No todos yet. Add one above!
+        <div className="text-center text-xl py-8 text-muted-foreground">
+          <h1>Welcome to Sunfix&apos;s todo.</h1>
         </div>
       ) : (
         <DndContext

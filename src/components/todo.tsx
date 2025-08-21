@@ -5,12 +5,12 @@ import { useTRPC } from "@/trpc/client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
 import { useQueryStates } from "nuqs";
-import TaskForm from "./task-form";
+import TodoCreateForm from "./todo-create-form";
 import TodoItemContainer from "./todo-item-container";
 import { Button } from "./ui/button";
 import withDrawer from "./withDrawer";
 
-const DrawerTaskForm = withDrawer(TaskForm);
+const DrawerTodoCreateForm = withDrawer(TodoCreateForm);
 
 const triggerButton = (
   <Button
@@ -29,7 +29,7 @@ const Todo = () => {
   return (
     <>
       <TodoItemContainer data={data} />
-      <DrawerTaskForm trigger={triggerButton} />
+      <DrawerTodoCreateForm trigger={triggerButton} />
     </>
   );
 };

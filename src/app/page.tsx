@@ -13,6 +13,7 @@ import { Separator } from "@/components/ui/separator";
 import type { SearchParams } from "nuqs/server";
 import { searchParamsCache } from "@/lib/searchParams";
 import StatusDropdown from "@/components/status-dropdown";
+import SignOutButton from "@/components/sign-out";
 
 type PageProps = {
   searchParams: Promise<SearchParams>;
@@ -33,6 +34,7 @@ const LandingPage = async ({ searchParams }: PageProps) => {
               <StatusDropdown />
               <ModeToggle />
               <Separator orientation="vertical" />
+              <SignOutButton />
             </div>
           </div>
           <Separator className="mt-3" />
