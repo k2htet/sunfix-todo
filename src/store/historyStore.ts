@@ -1,79 +1,110 @@
 import { create } from "zustand";
-import type { AppRouter } from "@/trpc/server/routers/_app";
-import { inferRouterOutputs } from "@trpc/server";
 
-type Task = inferRouterOutputs<AppRouter>["task"]["getAllTasks"][number];
+import { Task } from "@/db/schema";
+import {
+  Command,
+  createDeleteTaskCommand,
+  createReorderTasksCommand,
+} from "@/lib/command";
 
-export type Action =
-  | { type: "CREATE"; task: Task }
-  | { type: "DELETE"; task: Task };
+import { UseMutateFunction, UseMutationResult } from "@tanstack/react-query";
+import { TRPCClientErrorLike } from "@trpc/client";
+import { DefaultErrorShape } from "@trpc/server/unstable-core-do-not-import";
 
-interface HistoryState {
-  undoStack: Action[];
-  redoStack: Action[];
-  logAction: (action: Action) => void;
-  undo: () => Action | null;
-  redo: () => Action | null;
-  updateTopUndo: (task: Task) => void;
-  updateTopRedo: (task: Task) => void;
-  canUndo: () => boolean;
-  canRedo: () => boolean;
+interface TodoStoreState {
+  undoStack: Command[];
+  redoStack: Command[];
 }
 
-export const useHistoryStore = create<HistoryState>((set, get) => ({
-  undoStack: [],
-  redoStack: [],
+interface TodoStoreActions {
+  deleteTask: (
+    task: Task,
+    deleteMutation: UseMutationResult,
+    createMutation: UseMutationResult
+  ) => void;
+  reorderTasks: (
+    oldOrder: Task[],
+    newOrder: Task[],
+    reorderMutation: UseMutateFunction<
+      void,
+      TRPCClientErrorLike<{
+        input: {
+          id: number;
+          order: number;
+        }[];
+        output: void;
+        transformer: true;
+        errorShape: DefaultErrorShape;
+      }>,
+      {
+        id: number;
+        order: number;
+      }[],
+      undefined
+    >
+  ) => void;
+  undo: () => void;
+  redo: () => void;
+}
 
-  logAction: (action) =>
-    set((state) => ({
-      undoStack: [...state.undoStack, action],
-      redoStack: [], // clear redo stack on new action
-    })),
+type TodoStoreSet = (
+  updater: (state: TodoStoreState) => Partial<TodoStoreState>
+) => void;
 
-  undo: () => {
-    const { undoStack, redoStack } = get();
-    if (undoStack.length === 0) return null;
-    const action = undoStack[undoStack.length - 1];
-    set({
-      undoStack: undoStack.slice(0, -1),
-      redoStack: [...redoStack, action],
-    });
-    return action;
-  },
+// Internal function to execute commands, not exposed to components
+const execute = (set: TodoStoreSet, command: Command) => {
+  command.execute();
+  set((state: TodoStoreState) => ({
+    undoStack: [...state.undoStack, command],
+    redoStack: [],
+  }));
+};
 
-  redo: () => {
-    const { undoStack, redoStack } = get();
-    if (redoStack.length === 0) return null;
-    const action = redoStack[redoStack.length - 1];
-    set({
-      redoStack: redoStack.slice(0, -1),
-      undoStack: [...undoStack, action],
-    });
-    return action;
-  },
+export const useTodoStore = create<TodoStoreState & TodoStoreActions>(
+  (set, get) => ({
+    undoStack: [],
+    redoStack: [],
 
-  updateTopUndo: (task) =>
-    set((state) => {
-      if (state.undoStack.length === 0) return {};
-      const updated = [...state.undoStack];
-      const top = updated[updated.length - 1];
-      if (top.type === "CREATE" || top.type === "DELETE") {
-        updated[updated.length - 1] = { ...top, task };
+    deleteTask: (task, deleteMutation, createMutation) => {
+      const command = createDeleteTaskCommand(
+        task,
+        deleteMutation,
+        createMutation
+      );
+      execute(set, command);
+    },
+
+    reorderTasks: (oldOrder, newOrder, reorderMutation) => {
+      const command = createReorderTasksCommand(
+        oldOrder,
+        newOrder,
+        reorderMutation
+      );
+      execute(set, command);
+    },
+
+    undo: () => {
+      const { undoStack } = get();
+      const command = undoStack[undoStack.length - 1];
+      if (command) {
+        command.undo();
+        set((state) => ({
+          undoStack: state.undoStack.slice(0, -1),
+          redoStack: [...state.redoStack, command],
+        }));
       }
-      return { undoStack: updated };
-    }),
+    },
 
-  updateTopRedo: (task) =>
-    set((state) => {
-      if (state.redoStack.length === 0) return {};
-      const updated = [...state.redoStack];
-      const top = updated[updated.length - 1];
-      if (top.type === "CREATE" || top.type === "DELETE") {
-        updated[updated.length - 1] = { ...top, task };
+    redo: () => {
+      const { redoStack } = get();
+      const command = redoStack[redoStack.length - 1];
+      if (command) {
+        command.execute();
+        set((state) => ({
+          redoStack: state.redoStack.slice(0, -1),
+          undoStack: [...state.undoStack, command],
+        }));
       }
-      return { redoStack: updated };
-    }),
-
-  canUndo: () => get().undoStack.length > 0,
-  canRedo: () => get().redoStack.length > 0,
-}));
+    },
+  })
+);

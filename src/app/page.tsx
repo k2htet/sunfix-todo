@@ -13,7 +13,6 @@ import { Separator } from "@/components/ui/separator";
 import type { SearchParams } from "nuqs/server";
 import { searchParamsCache } from "@/lib/searchParams";
 import StatusDropdown from "@/components/status-dropdown";
-import { UndoRedoControls } from "@/components/undo-redo-control";
 
 type PageProps = {
   searchParams: Promise<SearchParams>;
@@ -29,12 +28,11 @@ const LandingPage = async ({ searchParams }: PageProps) => {
       {session?.user ? (
         <div className=" h-full w-full flex-1 px-4 py-3 relative">
           <div className="flex justify-between items-center gap-3 ">
-            <h1 className="text-xl font-bold ">Sunfix</h1>
+            <h1 className="text-2xl font-bold ">Sunfix</h1>
             <div className="h-9 flex items-center gap-x-1.5">
-              <UndoRedoControls />
-              <Separator orientation="vertical" />
               <StatusDropdown />
               <ModeToggle />
+              <Separator orientation="vertical" />
             </div>
           </div>
           <Separator className="mt-3" />

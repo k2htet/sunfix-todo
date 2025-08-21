@@ -2,6 +2,7 @@
 
 import { Task } from "@/db/schema";
 
+import { useTodoStore } from "@/store/historyStore";
 import { useTRPC } from "@/trpc/client";
 import {
   closestCenter,
@@ -20,8 +21,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Trash2 } from "lucide-react";
-import { useId, useMemo, useState } from "react";
+import { Loader2, Redo, Trash2, Undo } from "lucide-react";
+import { useEffect, useId, useMemo, useState } from "react";
 import TodoItem from "./todo-item";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
@@ -29,6 +30,10 @@ import { Checkbox } from "./ui/checkbox";
 const TodoItemContainer = ({ todos }: { todos: Task[] }) => {
   const [selectedTodos, setSelectedTodos] = useState<Set<number>>(new Set());
   const [data, setData] = useState<Task[]>(todos);
+
+  const { reorderTasks, undo, redo } = useTodoStore();
+  const canUndo = useTodoStore((state) => state.undoStack.length > 0);
+  const canRedo = useTodoStore((state) => state.redoStack.length > 0);
 
   const sortableId = useId();
   const sensors = useSensors(
@@ -49,6 +54,7 @@ const TodoItemContainer = ({ todos }: { todos: Task[] }) => {
       onError: (error) => console.log(error),
     })
   );
+
   const bulkDeleteMutation = useMutation(
     trpc.task.bulkDelete.mutationOptions({
       onError: (error) => console.log(error),
@@ -61,6 +67,7 @@ const TodoItemContainer = ({ todos }: { todos: Task[] }) => {
       },
     })
   );
+
   const dataIds = useMemo<UniqueIdentifier[]>(
     () => data?.map(({ order }) => order!).sort((a, b) => a - b) || [],
     [data]
@@ -74,12 +81,14 @@ const TodoItemContainer = ({ todos }: { todos: Task[] }) => {
       console.log(newIndex, oldIndex);
       const reorderdData = arrayMove(data, oldIndex, newIndex);
       setData(reorderdData);
-      mutation.mutate(
-        reorderdData.map((task, index) => ({
-          id: task.id,
-          order: index + 1,
-        }))
-      );
+
+      reorderTasks(data, reorderdData, mutation.mutate);
+      // mutation.mutate(
+      //   reorderdData.map((task, index) => ({
+      //     id: task.id,
+      //     order: index + 1,
+      //   }))
+      // );
     }
   }
   const toggleSelectTodo = (id: number) => {
@@ -100,10 +109,38 @@ const TodoItemContainer = ({ todos }: { todos: Task[] }) => {
     }
   };
 
+  // useEffect(() => {
+  //   const handleKeyDown = (event: KeyboardEvent) => {
+  //     const isCtrlOrCmd = event.ctrlKey || event.metaKey; // Handles Ctrl+Z and Cmd+Z
+
+  //     if (isCtrlOrCmd && event.key === "z") {
+  //       event.preventDefault();
+  //       useTodoStore.getState().undo();
+  //     }
+
+  //     if (isCtrlOrCmd && event.key === "y") {
+  //       event.preventDefault();
+  //       useTodoStore.getState().redo();
+  //     }
+  //   };
+
+  //   window.addEventListener("keydown", handleKeyDown);
+
+  //   // Cleanup function to remove the event listener
+  //   return () => {
+  //     window.removeEventListener("keydown", handleKeyDown);
+  //   };
+  // }, []);
+
+  useEffect(() => {
+    if (todos) {
+      setData(todos);
+    }
+  }, [todos]);
   return (
     <div className="py-3">
-      {selectedTodos.size > 1 && (
-        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg h-10">
+      <div className="flex items-center gap-2 my-4 p-2 bg-muted rounded-md">
+        <div className="flex items-center flex-1 justify-between p-3 bg-muted/50 rounded-lg h-10">
           <div className="flex items-center gap-2">
             <Checkbox
               checked={selectedTodos.size === todos.length && todos.length > 0}
@@ -134,8 +171,16 @@ const TodoItemContainer = ({ todos }: { todos: Task[] }) => {
             </Button>
           )}
         </div>
-      )}
-      {todos.length === 0 ? (
+
+        <Button onClick={undo} disabled={!canUndo} variant="outline" size="sm">
+          <Undo className="h-4 w-4 mr-2" /> Undo
+        </Button>
+        <Button onClick={redo} disabled={!canRedo} variant="outline" size="sm">
+          <Redo className="h-4 w-4 mr-2" /> Redo
+        </Button>
+      </div>
+
+      {data.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           No todos yet. Add one above!
         </div>

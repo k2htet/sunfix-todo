@@ -22,7 +22,6 @@ import { useTRPC } from "@/trpc/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Task } from "@/db/schema";
-import { useHistoryStore } from "@/store/historyStore";
 
 const TodoItemMenu = ({
   todo,
@@ -34,7 +33,6 @@ const TodoItemMenu = ({
   const [open, setOpen] = useState(false);
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { logAction } = useHistoryStore();
 
   const deleteMutation = useMutation(
     trpc.task.deleteTask.mutationOptions({
@@ -51,8 +49,6 @@ const TodoItemMenu = ({
   const handleDelete = async (taskToDelete: Task) => {
     try {
       await deleteMutation.mutateAsync({ id: taskToDelete.id });
-
-      logAction({ type: "DELETE", task: taskToDelete });
     } catch (error) {
       console.error("Failed to delete the task:", error);
     }

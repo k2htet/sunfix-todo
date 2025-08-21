@@ -31,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { useHistoryStore } from "@/store/historyStore";
 
 const formSchema = z.object({
   text: z.string().min(2, { message: "Too Short" }).max(150),
@@ -46,7 +45,7 @@ type TaskFormProps = {
 const TaskForm = ({ closeDrawer }: TaskFormProps) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { logAction } = useHistoryStore();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -65,8 +64,7 @@ const TaskForm = ({ closeDrawer }: TaskFormProps) => {
           queryKey: trpc.task.getAllTasks.queryKey(),
         });
       },
-      onSuccess: (newTask) => {
-        logAction({ type: "CREATE", task: newTask });
+      onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: trpc.task.getAllTasks.queryKey(),
         });

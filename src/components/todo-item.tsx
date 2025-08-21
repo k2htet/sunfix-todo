@@ -48,9 +48,7 @@ const TodoItem = ({
     <div
       key={todo.order!}
       className={`flex flex-col items-start gap-3 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors relative my-3 ${
-        selectedTodos.has(todo.order!)
-          ? "ring-2 ring-primary/20 bg-accent/30"
-          : ""
+        selectedTodos.has(todo.id) ? "ring-2 ring-primary/20 bg-accent/30" : ""
       }  ${
         isOverdue(todo.dueDate) && !todo.completed
           ? "border-destructive/50"
@@ -66,8 +64,8 @@ const TodoItem = ({
         <div className="flex justify-center items-center gap-x-3">
           <DragHandle id={todo.order!} />
           <Checkbox
-            checked={selectedTodos.has(todo.order!)}
-            onCheckedChange={() => toggleSelectTodo(todo.order!)}
+            checked={selectedTodos.has(todo.id)}
+            onCheckedChange={() => toggleSelectTodo(todo.id)}
           />
         </div>
         {todo.dueDate && isOverdue(todo.dueDate) && !todo.completed && (
