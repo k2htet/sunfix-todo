@@ -58,8 +58,8 @@ export const taskRouter = createTRPCRouter({
         return await ctx.db
           .select()
           .from(tasks)
-          .where(eq(tasks.userId, ctx.user.id))
-          .orderBy(asc(tasks.order));
+          .orderBy(asc(tasks.order))
+          .where(eq(tasks.userId, ctx.user.id));
       }
 
       return await ctx.db

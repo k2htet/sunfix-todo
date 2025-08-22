@@ -13,18 +13,24 @@ import withDrawer from "./withDrawer";
 const DrawerTodoCreateForm = withDrawer(TodoCreateForm);
 
 const triggerButton = (
-  <Button
-    className="absolute bottom-4 right-4 rounded-full shadow animate-bounce size-12"
-    size="icon"
-  >
-    <Pencil />
-  </Button>
+  <div className="fixed inset-x-0 bottom-4 ">
+    <div className="relative mx-auto max-w-md ">
+      <Button
+        className="absolute bottom-4 right-4 rounded-full shadow animate-bounce size-12"
+        size="icon"
+      >
+        <Pencil />
+      </Button>
+    </div>
+  </div>
 );
 
 const Todo = () => {
   const trpc = useTRPC();
   const [{ filter }] = useQueryStates(searchParamsParser);
   const { data } = useSuspenseQuery(trpc.task.getAllTasks.queryOptions(filter));
+
+  console.log(data);
 
   return (
     <>

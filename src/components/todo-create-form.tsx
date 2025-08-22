@@ -57,15 +57,49 @@ const TodoCreateForm = ({ closeDrawer }: TaskFormProps) => {
 
   const mutation = useMutation(
     trpc.task.createTask.mutationOptions({
-      onError: (error) =>
-        form.setError("text", { type: "DBError", message: error.message }),
+      onMutate: async (data) => {
+        closeDrawer();
+        await queryClient.cancelQueries({
+          queryKey: trpc.task.getAllTasks.queryKey(),
+        });
+
+        const previousTodo = queryClient.getQueryData(
+          trpc.task.getAllTasks.queryKey()
+        );
+
+        queryClient.setQueryData(trpc.task.getAllTasks.queryKey(), (prev) =>
+          prev
+            ? [
+                ...prev,
+                {
+                  text: data.text,
+                  dueDate: data.dueDate,
+                  priority: data.priority,
+                  order: prev.length + 1,
+                  completed: data.completed ? data.completed : false,
+                  userId: prev[0].userId,
+                  status: "Todo" as const,
+                  createdAt: new Date(),
+                  id: prev[length - 1].id + 1,
+                  updatedAt: null,
+                },
+              ]
+            : prev
+        );
+        return { previousTodo };
+      },
+
+      onError: (error, newTodo, ctx) => {
+        form.setError("text", { type: "DBError", message: error.message });
+        queryClient.setQueryData(
+          trpc.task.getAllTasks.queryKey(),
+          ctx?.previousTodo
+        );
+      },
       onSettled: () => {
         queryClient.invalidateQueries({
           queryKey: trpc.task.getAllTasks.queryKey(),
         });
-      },
-      onSuccess: () => {
-        closeDrawer();
       },
     })
   );

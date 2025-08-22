@@ -80,7 +80,22 @@ interface TodoStoreActions {
         id: number;
         order: number;
       }[],
-      undefined
+      {
+        previousTodo:
+          | {
+              id: number;
+              userId: string;
+              text: string;
+              completed: boolean;
+              status: "Todo" | "In Progress" | "Done";
+              priority: "Low" | "Medium" | "High";
+              dueDate: Date;
+              order: number | null;
+              createdAt: Date;
+              updatedAt: Date | null;
+            }[]
+          | undefined;
+      }
     >
   ) => void;
   undo: () => void;

@@ -45,12 +45,40 @@ const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
 
   const mutation = useMutation(
     trpc.task.reorderTasks.mutationOptions({
+      onMutate: async (data) => {
+        await queryClient.cancelQueries({
+          queryKey: trpc.task.getAllTasks.queryKey(),
+        });
+
+        const previousTodo = queryClient.getQueryData(
+          trpc.task.getAllTasks.queryKey()
+        );
+
+        const reordered = previousTodo?.map((todo) => {
+          const updated = data.find((d) => d.id === todo.id);
+          return {
+            ...todo,
+            order: updated ? updated.order : todo.order,
+          };
+        });
+
+        queryClient.setQueryData(trpc.task.getAllTasks.queryKey(), (prev) =>
+          prev ? reordered : prev
+        );
+
+        return { previousTodo };
+      },
+      onError: (err, newTodo, context) => {
+        queryClient.setQueryData(
+          trpc.task.getAllTasks.queryKey(),
+          context?.previousTodo
+        );
+      },
       onSettled: () => {
         queryClient.invalidateQueries({
           queryKey: trpc.task.getAllTasks.queryKey(),
         });
       },
-      onError: (error) => console.log(error),
     })
   );
 
@@ -72,7 +100,7 @@ const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
       const newIndex = dataIds.indexOf(over.id);
 
       const reorderdData = arrayMove(data, oldIndex, newIndex);
-      console.log(reorderdData);
+
       reorderTasks(data, reorderdData, mutation.mutate);
     }
   }
@@ -86,6 +114,7 @@ const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
     }
     setSelectedTodos(newSelected);
   };
+  console.log(data);
   return (
     <DndContext
       collisionDetection={closestCenter}
