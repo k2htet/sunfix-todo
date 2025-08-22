@@ -99,6 +99,9 @@ export function createReorderTasksCommand(
 ): Command {
   return {
     execute() {
+      console.log(
+        newOrder.map((task, index) => ({ id: task.id, order: index + 1 }))
+      );
       reorderMutation(
         newOrder.map((task, index) => ({ id: task.id, order: index + 1 }))
       );

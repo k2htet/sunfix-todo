@@ -47,7 +47,6 @@ const TodoItem = ({
 
   return (
     <div
-      key={todo.order!}
       className={`flex flex-col items-start gap-3 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors relative my-3 ${
         selectedTodos.has(todo.id) ? "ring-2 ring-primary/20 bg-accent/30" : ""
       }  ${

@@ -22,7 +22,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Dispatch, SetStateAction, useId, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import TodoItem from "./todo-item";
 
 type Props = {
@@ -33,7 +33,7 @@ type Props = {
 
 const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
   const [activeTodo, setActiveTodo] = useState<Task>();
-  const sortableId = useId();
+
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {})
@@ -55,7 +55,7 @@ const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
   );
 
   const dataIds = useMemo<UniqueIdentifier[]>(
-    () => data?.map(({ order }) => order!).sort((a, b) => a - b) || [],
+    () => data?.map(({ order }) => order!) || [],
     [data]
   );
 
@@ -72,7 +72,7 @@ const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
       const newIndex = dataIds.indexOf(over.id);
 
       const reorderdData = arrayMove(data, oldIndex, newIndex);
-
+      console.log(reorderdData);
       reorderTasks(data, reorderdData, mutation.mutate);
     }
   }
@@ -93,21 +93,23 @@ const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
       onDragEnd={handleDragEnd}
       onDragStart={handleDragStart}
       sensors={sensors}
-      id={sortableId}
     >
       <SortableContext
         items={dataIds}
         strategy={verticalListSortingStrategy}
         disabled={mutation.isPending}
       >
-        {data.map((todo) => (
-          <TodoItem
-            todo={todo}
-            selectedTodos={selectedTodos}
-            toggleSelectTodo={toggleSelectTodo}
-            key={todo.order}
-          />
-        ))}
+        {data
+          .slice()
+          .reverse()
+          .map((todo) => (
+            <TodoItem
+              todo={todo}
+              selectedTodos={selectedTodos}
+              toggleSelectTodo={toggleSelectTodo}
+              key={todo.order}
+            />
+          ))}
       </SortableContext>
       <DragOverlay>
         {activeTodo ? (
