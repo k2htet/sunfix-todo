@@ -31,6 +31,8 @@ const TaskUpdateForm = ({ closeDrawer, task }: TaskUpdateFormProps) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
+  const queryKey = trpc.task.getAllTasks.queryOptions("all").queryKey;
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { text: task.text },
@@ -38,14 +40,35 @@ const TaskUpdateForm = ({ closeDrawer, task }: TaskUpdateFormProps) => {
 
   const mutation = useMutation(
     trpc.task.updateTask.mutationOptions({
-      onError: (error) =>
-        form.setError("text", { type: "DBError", message: error.message }),
-      onSuccess: () => {
-        queryClient.invalidateQueries({
+      onMutate: async (data) => {
+        closeDrawer();
+        await queryClient.cancelQueries({
           queryKey: trpc.task.getAllTasks.queryKey(),
         });
-        closeDrawer();
+
+        const previousTodo = queryClient.getQueryData(queryKey);
+
+        queryClient.setQueryData(queryKey, (prev) => {
+          if (prev) {
+            return prev.map((item) =>
+              item.id === data.id
+                ? { ...item, text: data.text as string }
+                : item
+            );
+          }
+          return prev;
+        });
+
+        return { previousTodo };
       },
+
+      onError: (error, newTodo, ctx) => {
+        queryClient.setQueryData(queryKey, ctx?.previousTodo);
+      },
+      onSettled: () =>
+        queryClient.invalidateQueries({
+          queryKey: trpc.task.getAllTasks.queryKey(),
+        }),
     })
   );
 
