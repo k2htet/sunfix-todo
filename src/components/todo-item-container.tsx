@@ -7,7 +7,6 @@ import { useTodoStore } from "@/store/historyStore";
 import { useEffect, useState } from "react";
 
 import DndContainer from "./dnd-container";
-import GlobalLoadingIndicator from "./global-lodaing-indicator";
 import TodoBulkDelete from "./todo-bulk-delete";
 
 const TodoItemContainer = ({ data }: { data: Task[] }) => {
@@ -45,7 +44,7 @@ const TodoItemContainer = ({ data }: { data: Task[] }) => {
           setSelectedTodos={setSelectedTodos}
         />
       )}
-      <GlobalLoadingIndicator />
+
       {data.length === 0 ? (
         <div className="text-center text-xl py-8 text-muted-foreground">
           <h1>Welcome to Sunfix&apos;s todo.</h1>

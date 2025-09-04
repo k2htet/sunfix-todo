@@ -31,16 +31,29 @@ const TodoBulkDelete = ({ selectedTodos, setSelectedTodos, data }: Props) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { redo, undo } = useTodoStore();
+  const queryKey = trpc.task.getAllTasks.queryOptions("all").queryKey;
 
   const bulkDeleteMutation = useMutation(
     trpc.task.bulkDelete.mutationOptions({
-      onError: (error) => console.log(error),
-
-      onSuccess: () => {
-        queryClient.invalidateQueries({
+      onMutate: async (data) => {
+        await queryClient.cancelQueries({
           queryKey: trpc.task.getAllTasks.queryKey(),
         });
+
+        const previousTodo = queryClient.getQueryData(queryKey);
+        queryClient.setQueryData(queryKey, (prev) =>
+          prev ? prev.filter((item) => !data.includes(item.id)) : prev
+        );
+        return { previousTodo };
+      },
+      onError: (error, _, ctx) => {
+        queryClient.setQueryData(queryKey, ctx?.previousTodo);
+      },
+      onSettled: () => {
         setSelectedTodos(new Set());
+        return queryClient.invalidateQueries({
+          queryKey: trpc.task.getAllTasks.queryKey(),
+        });
       },
     })
   );

@@ -114,7 +114,7 @@ const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
     }
     setSelectedTodos(newSelected);
   };
-  console.log(data);
+
   return (
     <DndContext
       collisionDetection={closestCenter}

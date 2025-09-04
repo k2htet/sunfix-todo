@@ -30,8 +30,6 @@ const Todo = () => {
   const [{ filter }] = useQueryStates(searchParamsParser);
   const { data } = useSuspenseQuery(trpc.task.getAllTasks.queryOptions(filter));
 
-  console.log(data);
-
   return (
     <>
       <TodoItemContainer data={data} />

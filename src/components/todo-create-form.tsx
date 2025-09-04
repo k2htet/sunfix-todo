@@ -15,10 +15,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import useCreateTodoMutation from "@/hooks/useCreateTodoMutation";
 import { cn } from "@/lib/utils";
-import { useTRPC } from "@/trpc/client";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isBefore, startOfDay } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -43,9 +42,6 @@ type TaskFormProps = {
 };
 
 const TodoCreateForm = ({ closeDrawer }: TaskFormProps) => {
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -55,61 +51,22 @@ const TodoCreateForm = ({ closeDrawer }: TaskFormProps) => {
     },
   });
 
-  const mutation = useMutation(
-    trpc.task.createTask.mutationOptions({
-      onMutate: async (data) => {
-        closeDrawer();
-        await queryClient.cancelQueries({
-          queryKey: trpc.task.getAllTasks.queryKey(),
-        });
-
-        const previousTodo = queryClient.getQueryData(
-          trpc.task.getAllTasks.queryKey()
-        );
-
-        queryClient.setQueryData(trpc.task.getAllTasks.queryKey(), (prev) =>
-          prev
-            ? [
-                ...prev,
-                {
-                  text: data.text,
-                  dueDate: data.dueDate,
-                  priority: data.priority,
-                  order: prev.length + 1,
-                  completed: data.completed ? data.completed : false,
-                  userId: prev[0].userId,
-                  status: "Todo" as const,
-                  createdAt: new Date(),
-                  id: prev[length - 1].id + 1,
-                  updatedAt: null,
-                },
-              ]
-            : prev
-        );
-        return { previousTodo };
-      },
-
-      onError: (error, newTodo, ctx) => {
-        form.setError("text", { type: "DBError", message: error.message });
-        queryClient.setQueryData(
-          trpc.task.getAllTasks.queryKey(),
-          ctx?.previousTodo
-        );
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.task.getAllTasks.queryKey(),
-        });
-      },
-    })
-  );
+  const mutation = useCreateTodoMutation();
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit((values) =>
-          mutation.mutate({ ...values, text: values.text.trim() })
-        )}
+        onSubmit={form.handleSubmit((values) => {
+          closeDrawer();
+
+          mutation.mutate({ ...values, text: values.text.trim() });
+          if (mutation.isError) {
+            form.setError("text", {
+              type: "DBError",
+              message: mutation.error.message,
+            });
+          }
+        })}
         className="space-y-8 p-4"
       >
         <FormField
