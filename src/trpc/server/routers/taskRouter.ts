@@ -3,7 +3,6 @@ import { createTRPCRouter, protectedProcedure } from "../init";
 
 import { and, asc, desc, eq, inArray, max, sql } from "drizzle-orm";
 import z from "zod/v4";
-import { v4 as uuidv4 } from "uuid";
 
 const taskInsertSchema = z.object({
   text: z.string().min(1, { message: "Task cannot be empty" }),
@@ -13,6 +12,7 @@ const taskInsertSchema = z.object({
   order: z.number().optional(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
+  id: z.string(),
 });
 
 const taskUpdateSchema = z.object({
@@ -43,7 +43,7 @@ export const taskRouter = createTRPCRouter({
           order: newOrder,
           dueDate: input.dueDate,
           priority: input.priority,
-          id: uuidv4(),
+          id: input.id,
         })
         .returning();
 
@@ -107,7 +107,9 @@ export const taskRouter = createTRPCRouter({
     .input(z.array(z.object({ id: z.string(), order: z.number() })))
     .mutation(async ({ ctx, input }) => {
       if (!input.length) return;
+
       const taskIds = input.map((t) => t.id);
+
       let caseStatement = sql`(CASE`;
       input.forEach((task) => {
         caseStatement = sql`${caseStatement} WHEN ${tasks.id} = ${task.id} THEN ${task.order}`;

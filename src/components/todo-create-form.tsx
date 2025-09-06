@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { uuid } from "@/lib/uuid";
 
 const formSchema = z.object({
   text: z.string().min(2, { message: "Too Short" }).max(150),
@@ -59,7 +60,7 @@ const TodoCreateForm = ({ closeDrawer }: TaskFormProps) => {
         onSubmit={form.handleSubmit((values) => {
           closeDrawer();
 
-          mutation.mutate({ ...values, text: values.text.trim() });
+          mutation.mutate({ ...values, text: values.text.trim(), id: uuid() });
           if (mutation.isError) {
             form.setError("text", {
               type: "DBError",

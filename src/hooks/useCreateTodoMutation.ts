@@ -30,7 +30,7 @@ const useCreateTodoMutation = () => {
                 userId: session!.user.id,
                 status: "Todo" as const,
                 createdAt: new Date(),
-                id: Math.random(),
+                id: data.id,
                 updatedAt: null,
               },
             ];

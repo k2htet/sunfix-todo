@@ -1,6 +1,6 @@
 "use client";
 
-import { useTRPC } from "@/trpc/client";
+import useReorderMutation from "@/hooks/useReorderMutation";
 import {
   closestCenter,
   DndContext,
@@ -19,7 +19,6 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Task } from "../../type";
 import TodoItem from "./todo-item";
@@ -32,73 +31,41 @@ type Props = {
 
 const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
   const [activeTodo, setActiveTodo] = useState<Task[number]>();
-
+  const [tempTodo, setTempTodo] = useState<Task>(data);
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {})
   );
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
 
-  const mutation = useMutation(
-    trpc.task.reorderTasks.mutationOptions({
-      onMutate: async (data) => {
-        await queryClient.cancelQueries({
-          queryKey: trpc.task.getAllTasks.queryKey(),
-        });
+  const mutation = useReorderMutation();
 
-        const previousTodo = queryClient.getQueryData(
-          trpc.task.getAllTasks.queryKey()
-        );
-
-        const reordered = previousTodo?.map((todo) => {
-          const updated = data.find((d) => d.id === todo.id);
-          return {
-            ...todo,
-            order: updated ? updated.order : todo.order,
-          };
-        });
-
-        queryClient.setQueryData(trpc.task.getAllTasks.queryKey(), (prev) =>
-          prev ? reordered : prev
-        );
-
-        return { previousTodo };
-      },
-      onError: (err, newTodo, context) => {
-        queryClient.setQueryData(
-          trpc.task.getAllTasks.queryKey(),
-          context?.previousTodo
-        );
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.task.getAllTasks.queryKey(),
-        });
-      },
-    })
-  );
-
-  const dataIds = useMemo<UniqueIdentifier[]>(
-    () => data?.map(({ order }) => order!) || [],
-    [data]
-  );
+  const dataIds = useMemo<UniqueIdentifier[]>(() => {
+    if (tempTodo) {
+      return tempTodo?.map(({ order }) => order!) || [];
+    }
+    return data?.map(({ order }) => order!) || [];
+  }, [data, tempTodo]);
 
   function handleDragStart(event: DragStartEvent) {
     const { active } = event;
-    const activeItem = data.find((todo) => todo.order === active.id);
+    const activeItem = tempTodo.find((todo) => todo.order === active.id);
     setActiveTodo(activeItem);
   }
 
-  function handleDragEnd(event: DragEndEvent) {
+  async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (active && over && active.id !== over.id) {
       const oldIndex = dataIds.indexOf(active.id);
       const newIndex = dataIds.indexOf(over.id);
 
       const reorderdData = arrayMove(data, oldIndex, newIndex);
-
-      // reorderTasks(data, reorderdData, mutation.mutate);
+      setTempTodo(reorderdData);
+      await mutation.mutateAsync(
+        reorderdData.map((item, index) => ({
+          id: item.id,
+          order: index + 1,
+        }))
+      );
     }
   }
 
@@ -121,19 +88,18 @@ const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
       sensors={sensors}
     >
       <SortableContext
-        items={dataIds}
+        items={tempTodo}
         strategy={verticalListSortingStrategy}
         disabled={mutation.isPending}
       >
-        {data
-          .slice()
-          .reverse()
-          .map((todo) => (
+        {tempTodo &&
+          tempTodo.map((todo) => (
             <TodoItem
               todo={todo}
               selectedTodos={selectedTodos}
               toggleSelectTodo={toggleSelectTodo}
               key={todo.order}
+              disable={mutation.isPending}
             />
           ))}
       </SortableContext>
@@ -144,6 +110,7 @@ const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
             selectedTodos={selectedTodos}
             toggleSelectTodo={toggleSelectTodo}
             key={activeTodo.order}
+            disable={mutation.isPending}
           />
         ) : null}
       </DragOverlay>

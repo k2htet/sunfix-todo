@@ -7,8 +7,7 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 
-import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import useDeleteTodoMutation from "@/hooks/useDeleteTodoMutation";
 import { EllipsisVertical, Loader2Icon } from "lucide-react";
 import { useState } from "react";
 import { Task } from "../../type";
@@ -31,35 +30,20 @@ const TodoItemMenu = ({
   selectedTodos: Set<string>;
 }) => {
   const [open, setOpen] = useState(false);
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
 
-  const deleteMutation = useMutation(
-    trpc.task.deleteTask.mutationOptions({
-      onError: (error) => console.log(error),
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.task.getAllTasks.queryKey(),
-        });
-        selectedTodos.delete(todo.id);
-      },
-    })
-  );
+  // const deleteMutation = useMutation(
+  //   trpc.task.deleteTask.mutationOptions({
+  //     onError: (error) => console.log(error),
+  //     onSuccess: () => {
+  //       queryClient.invalidateQueries({
+  //         queryKey: trpc.task.getAllTasks.queryKey(),
+  //       });
+  //       selectedTodos.delete(todo.id);
+  //     },
+  //   })
+  // );
 
-  const createMutation = useMutation(
-    trpc.task.createTask.mutationOptions({
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.task.getAllTasks.queryKey(),
-        });
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.task.getAllTasks.queryKey(),
-        });
-      },
-    })
-  );
+  const deleteMutation = useDeleteTodoMutation();
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
@@ -89,7 +73,10 @@ const TodoItemMenu = ({
 
           {selectedTodos.size <= 1 && (
             <DropdownMenuItem
-              // onClick={() => handleDelete(todo)}
+              onClick={async () => {
+                await deleteMutation.mutateAsync(todo);
+                selectedTodos.delete(todo.id);
+              }}
               disabled={deleteMutation.isPending}
               className="text-destructive"
             >

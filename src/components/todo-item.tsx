@@ -13,7 +13,7 @@ import TodoItemStatusSelect from "./todo-item-status-select";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Task } from "../../type";
-function DragHandle({ id }: { id: number }) {
+function DragHandle({ id, disable }: { id: number; disable: boolean }) {
   const { attributes, listeners } = useSortable({
     id,
   });
@@ -23,7 +23,8 @@ function DragHandle({ id }: { id: number }) {
       {...listeners}
       variant="ghost"
       size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent cursor-grab"
+      className="text-muted-foreground size-7 hover:bg-transparent cursor-grab disabled:cursor-not-allowed"
+      disabled={disable}
     >
       <GripVertical className="text-muted-foreground size-3" />
       <span className="sr-only">Drag to reorder</span>
@@ -35,10 +36,12 @@ const TodoItem = ({
   todo,
   selectedTodos,
   toggleSelectTodo,
+  disable,
 }: {
   todo: Task[number];
   selectedTodos: Set<string>;
   toggleSelectTodo: (id: string) => void;
+  disable: boolean;
 }) => {
   const { transform, transition, setNodeRef } = useSortable({
     id: todo.order!,
@@ -61,7 +64,7 @@ const TodoItem = ({
     >
       <div className="flex justify-between items-center gap-2 pt-1 w-full">
         <div className="flex justify-center items-center gap-x-3">
-          <DragHandle id={todo.order!} />
+          <DragHandle id={todo.order!} disable={disable} />
           <Checkbox
             checked={selectedTodos.has(todo.id)}
             onCheckedChange={() => toggleSelectTodo(todo.id)}
