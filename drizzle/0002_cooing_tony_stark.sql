@@ -1,1 +1,0 @@
-ALTER TABLE "tasks" ALTER COLUMN "priority" SET NOT NULL;

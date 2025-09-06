@@ -1,7 +1,5 @@
 "use client";
 
-import { Task } from "@/db/schema";
-import { useTodoStore } from "@/store/historyStore";
 import { useTRPC } from "@/trpc/client";
 import {
   closestCenter,
@@ -23,16 +21,17 @@ import {
 } from "@dnd-kit/sortable";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Task } from "../../type";
 import TodoItem from "./todo-item";
 
 type Props = {
-  selectedTodos: Set<number>;
-  setSelectedTodos: Dispatch<SetStateAction<Set<number>>>;
-  data: Task[];
+  selectedTodos: Set<string>;
+  setSelectedTodos: Dispatch<SetStateAction<Set<string>>>;
+  data: Task;
 };
 
 const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
-  const [activeTodo, setActiveTodo] = useState<Task>();
+  const [activeTodo, setActiveTodo] = useState<Task[number]>();
 
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
@@ -40,8 +39,6 @@ const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
   );
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-
-  const reorderTasks = useTodoStore((state) => state.reorderTasks);
 
   const mutation = useMutation(
     trpc.task.reorderTasks.mutationOptions({
@@ -101,11 +98,11 @@ const DndContainer = ({ data, selectedTodos, setSelectedTodos }: Props) => {
 
       const reorderdData = arrayMove(data, oldIndex, newIndex);
 
-      reorderTasks(data, reorderdData, mutation.mutate);
+      // reorderTasks(data, reorderdData, mutation.mutate);
     }
   }
 
-  const toggleSelectTodo = (id: number) => {
+  const toggleSelectTodo = (id: string) => {
     const newSelected = new Set(selectedTodos);
     if (newSelected.has(id)) {
       newSelected.delete(id);

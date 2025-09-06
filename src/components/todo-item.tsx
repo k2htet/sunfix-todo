@@ -1,7 +1,5 @@
 "use client";
 
-import { Task } from "@/db/schema";
-
 import { Checkbox } from "./ui/checkbox";
 
 import { formatRelativeTime, isOverdue } from "@/lib/utils";
@@ -14,6 +12,7 @@ import TodoItemPrioritySelect from "./todo-item-priority-select";
 import TodoItemStatusSelect from "./todo-item-status-select";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
+import { Task } from "../../type";
 function DragHandle({ id }: { id: number }) {
   const { attributes, listeners } = useSortable({
     id,
@@ -37,9 +36,9 @@ const TodoItem = ({
   selectedTodos,
   toggleSelectTodo,
 }: {
-  todo: Task;
-  selectedTodos: Set<number>;
-  toggleSelectTodo: (id: number) => void;
+  todo: Task[number];
+  selectedTodos: Set<string>;
+  toggleSelectTodo: (id: string) => void;
 }) => {
   const { transform, transition, setNodeRef } = useSortable({
     id: todo.order!,

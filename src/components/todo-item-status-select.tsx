@@ -1,5 +1,5 @@
 "use client";
-import { Task } from "@/db/schema";
+
 import { useTRPC } from "@/trpc/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -10,8 +10,9 @@ import {
   SelectValue,
 } from "./ui/select";
 import { cn } from "@/lib/utils";
+import { Task } from "../../type";
 
-const TodoItemStatusSelect = ({ todo }: { todo: Task }) => {
+const TodoItemStatusSelect = ({ todo }: { todo: Task[number] }) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -30,7 +31,7 @@ const TodoItemStatusSelect = ({ todo }: { todo: Task }) => {
   return (
     <Select
       value={todo.status}
-      onValueChange={async (value: Task["status"]) =>
+      onValueChange={async (value: Task[number]["status"]) =>
         mutation.mutate({ id: todo.id, status: value })
       }
       disabled={mutation.isPending}

@@ -4,9 +4,9 @@ import {
   integer,
   pgEnum,
   pgTable,
-  serial,
   text,
   timestamp,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { createSelectSchema } from "drizzle-zod";
 import z4 from "zod/v4";
@@ -69,7 +69,7 @@ export const statusEnum = pgEnum("status", ["Todo", "In Progress", "Done"]);
 export const priorityEnum = pgEnum("priority", ["Low", "Medium", "High"]);
 
 export const tasks = pgTable("tasks", {
-  id: serial("id").primaryKey(),
+  id: uuid("id").primaryKey(),
 
   userId: text("user_id")
     .notNull()
@@ -95,7 +95,6 @@ export const tasks = pgTable("tasks", {
 export const taskInsertSchema = createSelectSchema(tasks);
 export const statusSchema = z4.enum(["all", "inComplete", "complete"]);
 
-export type Task = z4.infer<typeof taskInsertSchema>;
 // --- Relations ---
 
 // one user can have many tasks.

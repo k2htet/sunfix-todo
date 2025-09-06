@@ -3,6 +3,7 @@ import { createTRPCRouter, protectedProcedure } from "../init";
 
 import { and, asc, desc, eq, inArray, max, sql } from "drizzle-orm";
 import z from "zod/v4";
+import { v4 as uuidv4 } from "uuid";
 
 const taskInsertSchema = z.object({
   text: z.string().min(1, { message: "Task cannot be empty" }),
@@ -15,7 +16,7 @@ const taskInsertSchema = z.object({
 });
 
 const taskUpdateSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   text: z.string().min(1).optional(),
   completed: z.boolean().optional(),
   priority: z.enum(["Low", "Medium", "High"]).optional(),
@@ -42,6 +43,7 @@ export const taskRouter = createTRPCRouter({
           order: newOrder,
           dueDate: input.dueDate,
           priority: input.priority,
+          id: uuidv4(),
         })
         .returning();
 
@@ -83,7 +85,7 @@ export const taskRouter = createTRPCRouter({
     }),
 
   deleteTask: protectedProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       return await ctx.db
         .delete(tasks)
@@ -94,7 +96,7 @@ export const taskRouter = createTRPCRouter({
         .returning({ id: tasks.id }); // Return the ID of the deleted task
     }),
   bulkDelete: protectedProcedure
-    .input(z.array(z.number()))
+    .input(z.array(z.string()))
     .mutation(async ({ ctx, input }) => {
       return await ctx.db
         .delete(tasks)
@@ -102,7 +104,7 @@ export const taskRouter = createTRPCRouter({
     }),
 
   reorderTasks: protectedProcedure
-    .input(z.array(z.object({ id: z.number(), order: z.number() })))
+    .input(z.array(z.object({ id: z.string(), order: z.number() })))
     .mutation(async ({ ctx, input }) => {
       if (!input.length) return;
       const taskIds = input.map((t) => t.id);

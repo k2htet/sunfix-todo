@@ -1,5 +1,5 @@
 "use client";
-import { Task } from "@/db/schema";
+
 import { cn, getPriorityColor } from "@/lib/utils";
 import { useTRPC } from "@/trpc/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,8 +10,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { Task } from "../../type";
 
-const TodoItemPrioritySelect = ({ todo }: { todo: Task }) => {
+const TodoItemPrioritySelect = ({ todo }: { todo: Task[number] }) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -30,7 +31,7 @@ const TodoItemPrioritySelect = ({ todo }: { todo: Task }) => {
   return (
     <Select
       value={todo.priority}
-      onValueChange={async (value: Task["priority"]) =>
+      onValueChange={async (value: Task[number]["priority"]) =>
         mutation.mutate({ id: todo.id, priority: value })
       }
       disabled={mutation.isPending}

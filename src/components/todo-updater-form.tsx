@@ -22,7 +22,7 @@ const formSchema = z.object({
 type TaskUpdateFormProps = {
   closeDrawer: () => void;
   task: {
-    id: number;
+    id: string;
     text: string;
   };
 };

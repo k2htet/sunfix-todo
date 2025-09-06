@@ -7,7 +7,13 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 
+import { useTRPC } from "@/trpc/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { EllipsisVertical, Loader2Icon } from "lucide-react";
+import { useState } from "react";
+import { Task } from "../../type";
 import TaskUpdateForm from "./todo-updater-form";
+import { Button } from "./ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,25 +22,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Button } from "./ui/button";
-import { EllipsisVertical, Loader2Icon } from "lucide-react";
-import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { Task } from "@/db/schema";
-import { useTodoStore } from "@/store/historyStore";
 
 const TodoItemMenu = ({
   todo,
   selectedTodos,
 }: {
-  todo: Task;
-  selectedTodos: Set<number>;
+  todo: Task[number];
+  selectedTodos: Set<string>;
 }) => {
   const [open, setOpen] = useState(false);
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const deleteTask = useTodoStore((state) => state.deleteTask);
 
   const deleteMutation = useMutation(
     trpc.task.deleteTask.mutationOptions({
@@ -62,10 +60,6 @@ const TodoItemMenu = ({
       },
     })
   );
-
-  const handleDelete = async (taskToDelete: Task) => {
-    deleteTask(taskToDelete, deleteMutation.mutate, createMutation.mutate);
-  };
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
@@ -95,7 +89,7 @@ const TodoItemMenu = ({
 
           {selectedTodos.size <= 1 && (
             <DropdownMenuItem
-              onClick={() => handleDelete(todo)}
+              // onClick={() => handleDelete(todo)}
               disabled={deleteMutation.isPending}
               className="text-destructive"
             >

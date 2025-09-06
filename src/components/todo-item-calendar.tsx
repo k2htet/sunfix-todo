@@ -1,4 +1,3 @@
-import { Task } from "@/db/schema";
 import { useTRPC } from "@/trpc/client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, isBefore, startOfDay } from "date-fns";
@@ -7,8 +6,9 @@ import { Button } from "./ui/button";
 import { Calendar } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { useState } from "react";
+import { Task } from "../../type";
 
-const ToDoItemCalendar = ({ todo }: { todo: Task }) => {
+const ToDoItemCalendar = ({ todo }: { todo: Task[number] }) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -20,9 +20,9 @@ const ToDoItemCalendar = ({ todo }: { todo: Task }) => {
         const queryKey = trpc.task.getAllTasks.queryKey();
         await queryClient.cancelQueries({ queryKey });
 
-        const previousTodos = queryClient.getQueryData<Task[]>(queryKey);
+        const previousTodos = queryClient.getQueryData<Task>(queryKey);
 
-        queryClient.setQueryData<Task[]>(queryKey, (oldTodos = []) =>
+        queryClient.setQueryData<Task>(queryKey, (oldTodos = []) =>
           oldTodos.map((t) =>
             t.id === updatedTodo.id ? { ...t, ...updatedTodo } : t
           )
