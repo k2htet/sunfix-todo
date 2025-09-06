@@ -27,14 +27,16 @@ const LandingPage = async ({ searchParams }: PageProps) => {
   return (
     <div className="bg-background flex min-h-svh flex-col mx-auto max-w-md relative">
       {session?.user ? (
-        <div className=" h-full w-full flex-1 px-4 py-3 relative">
-          <div className="flex justify-between items-center gap-3 ">
-            <h1 className="text-2xl font-bold ">Sunfix</h1>
-            <div className="h-9 flex items-center gap-x-1.5">
-              <StatusDropdown />
-              <ModeToggle />
-              <Separator orientation="vertical" />
-              <SignOutButton />
+        <div className=" h-full w-full flex-1 px-4 py-3 relative pt-10">
+          <div className="fixed inset-x-0 top-0 z-30">
+            <div className="flex justify-between items-center gap-3 relative mx-auto max-w-md px-4 py-2 bg-background">
+              <h1 className="text-2xl font-bold ">Sunfix</h1>
+              <div className="h-9 flex items-center gap-x-1.5">
+                <StatusDropdown />
+                <ModeToggle />
+                <Separator orientation="vertical" />
+                <SignOutButton />
+              </div>
             </div>
           </div>
           <Separator className="mt-3" />

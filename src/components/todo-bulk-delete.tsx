@@ -1,8 +1,12 @@
 "use client";
 
 import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Trash2 } from "lucide-react";
+import {
+  useIsMutating,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { Loader2, Redo, Trash2, Undo } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
@@ -19,6 +23,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Task } from "../../type";
+import { useTodoStore } from "@/hooks/useTodoStore";
 
 type Props = {
   selectedTodos: Set<string>;
@@ -28,8 +33,9 @@ type Props = {
 const TodoBulkDelete = ({ selectedTodos, setSelectedTodos, data }: Props) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-
+  const { redo, undo, canRedo, canUndo } = useTodoStore();
   const queryKey = trpc.task.getAllTasks.queryOptions("all").queryKey;
+  const isMutating = useIsMutating();
 
   const bulkDeleteMutation = useMutation(
     trpc.task.bulkDelete.mutationOptions({
@@ -119,13 +125,23 @@ const TodoBulkDelete = ({ selectedTodos, setSelectedTodos, data }: Props) => {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      {/* 
-      <Button onClick={undo} disabled={!canUndo} variant="outline" size="sm">
+
+      <Button
+        onClick={undo}
+        disabled={!canUndo() || !!isMutating}
+        variant="outline"
+        size="sm"
+      >
         <Undo className="h-4 w-4 mr-2" /> Undo
       </Button>
-      <Button onClick={redo} disabled={!canRedo} variant="outline" size="sm">
+      <Button
+        onClick={redo}
+        disabled={!canRedo() || !!isMutating}
+        variant="outline"
+        size="sm"
+      >
         <Redo className="h-4 w-4 mr-2" /> Redo
-      </Button> */}
+      </Button>
     </div>
   );
 };

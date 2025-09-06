@@ -8,3 +8,4 @@ export type Outputs = inferRouterOutputs<AppRouter>;
 
 export type Task = inferOutput<typeof trpc.task.getAllTasks>;
 export type CreateTask = inferInput<typeof trpc.task.createTask>;
+export type UpdateTask = inferInput<typeof trpc.task.updateTask>;

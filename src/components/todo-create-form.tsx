@@ -15,8 +15,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import useCreateTodoMutation from "@/hooks/useCreateTodoMutation";
+import { useCreateTodoCommand } from "@/hooks/useCreateTodoCommand";
+import { useTodoStore } from "@/hooks/useTodoStore";
 import { cn } from "@/lib/utils";
+import { uuid } from "@/lib/uuid";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format, isBefore, startOfDay } from "date-fns";
 import { CalendarIcon } from "lucide-react";
@@ -30,7 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { uuid } from "@/lib/uuid";
 
 const formSchema = z.object({
   text: z.string().min(2, { message: "Too Short" }).max(150),
@@ -51,22 +52,17 @@ const TodoCreateForm = ({ closeDrawer }: TaskFormProps) => {
       dueDate: new Date(),
     },
   });
-
-  const mutation = useCreateTodoMutation();
+  const execute = useTodoStore((state) => state.executeCommand);
+  const command = useCreateTodoCommand();
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit((values) => {
+        onSubmit={form.handleSubmit(async (values) => {
           closeDrawer();
-
-          mutation.mutate({ ...values, text: values.text.trim(), id: uuid() });
-          if (mutation.isError) {
-            form.setError("text", {
-              type: "DBError",
-              message: mutation.error.message,
-            });
-          }
+          await execute(
+            command({ ...values, text: values.text.trim(), id: uuid() })
+          );
         })}
         className="space-y-8 p-4"
       >
@@ -154,8 +150,12 @@ const TodoCreateForm = ({ closeDrawer }: TaskFormProps) => {
             )}
           />
         </div>
-        <Button className="w-full" type="submit" disabled={mutation.isPending}>
-          {mutation.isPending ? "ADDING" : "ADD"}
+        <Button
+          className="w-full"
+          type="submit"
+          disabled={form.formState.isSubmitting}
+        >
+          {form.formState.isSubmitting ? "ADDING" : "ADD"}
         </Button>
       </form>
     </Form>

@@ -105,11 +105,6 @@ const TodoItem = ({
               Created {formatRelativeTime(todo.createdAt)}
             </div>
           )}
-          {todo.updatedAt && (
-            <div className="text-xs text-muted-foreground">
-              Updated {formatRelativeTime(todo.createdAt)}
-            </div>
-          )}
         </div>
       </div>
     </div>

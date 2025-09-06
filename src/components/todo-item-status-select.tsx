@@ -1,7 +1,7 @@
 "use client";
 
-import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
+import { Task } from "../../type";
 import {
   Select,
   SelectContent,
@@ -9,36 +9,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { cn } from "@/lib/utils";
-import { Task } from "../../type";
+import useTodoItemStateChange from "@/hooks/useTodoItemStateChange";
 
 const TodoItemStatusSelect = ({ todo }: { todo: Task[number] }) => {
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
-
-  const mutation = useMutation(
-    trpc.task.updateTask.mutationOptions({
-      onError: (error) => console.error(error),
-
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.task.getAllTasks.queryKey(),
-        });
-      },
-    })
-  );
+  const mutation = useTodoItemStateChange();
 
   return (
     <Select
       value={todo.status}
       onValueChange={async (value: Task[number]["status"]) =>
-        mutation.mutate({ id: todo.id, status: value })
+        mutation.mutate({ ...todo, status: value })
       }
       disabled={mutation.isPending}
     >
       <SelectTrigger
         className={cn(
-          "w-full h-7 text-xs",
+          "w-full h-7 text-xs disabled:opacity-90",
           todo.status === "Todo"
             ? "text-destructive"
             : todo.status === "In Progress"

@@ -1,8 +1,7 @@
 "use client";
 
 import { cn, getPriorityColor } from "@/lib/utils";
-import { useTRPC } from "@/trpc/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Task } from "../../type";
 import {
   Select,
   SelectContent,
@@ -10,34 +9,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
-import { Task } from "../../type";
+
+import useTodoItemStateChange from "@/hooks/useTodoItemStateChange";
 
 const TodoItemPrioritySelect = ({ todo }: { todo: Task[number] }) => {
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
-
-  const mutation = useMutation(
-    trpc.task.updateTask.mutationOptions({
-      onError: (error) => console.error(error),
-
-      onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: trpc.task.getAllTasks.queryKey(),
-        });
-      },
-    })
-  );
+  const mutation = useTodoItemStateChange();
 
   return (
     <Select
       value={todo.priority}
       onValueChange={async (value: Task[number]["priority"]) =>
-        mutation.mutate({ id: todo.id, priority: value })
+        mutation.mutate({ ...todo, priority: value })
       }
       disabled={mutation.isPending}
     >
       <SelectTrigger
-        className={cn("w-full h-7 text-xs", getPriorityColor(todo.priority))}
+        className={cn(
+          "w-full h-7 text-xs disabled:opacity-90",
+          getPriorityColor(todo.priority)
+        )}
       >
         <div className="flex items-center gap-1">
           <SelectValue />

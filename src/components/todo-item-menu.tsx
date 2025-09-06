@@ -7,8 +7,8 @@ import {
   DrawerTrigger,
 } from "@/components/ui/drawer";
 
-import useDeleteTodoMutation from "@/hooks/useDeleteTodoMutation";
-import { EllipsisVertical, Loader2Icon } from "lucide-react";
+import { useDeleteTodoCommand } from "@/hooks/useDeleteTodoCommand";
+import { EllipsisVertical } from "lucide-react";
 import { useState } from "react";
 import { Task } from "../../type";
 import TaskUpdateForm from "./todo-updater-form";
@@ -21,6 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { useTodoStore } from "@/hooks/useTodoStore";
 
 const TodoItemMenu = ({
   todo,
@@ -30,37 +31,15 @@ const TodoItemMenu = ({
   selectedTodos: Set<string>;
 }) => {
   const [open, setOpen] = useState(false);
-
-  // const deleteMutation = useMutation(
-  //   trpc.task.deleteTask.mutationOptions({
-  //     onError: (error) => console.log(error),
-  //     onSuccess: () => {
-  //       queryClient.invalidateQueries({
-  //         queryKey: trpc.task.getAllTasks.queryKey(),
-  //       });
-  //       selectedTodos.delete(todo.id);
-  //     },
-  //   })
-  // );
-
-  const deleteMutation = useDeleteTodoMutation();
+  const execute = useTodoStore((state) => state.executeCommand);
+  const deleteMutation = useDeleteTodoCommand();
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="size-4 mt-1"
-            disabled={deleteMutation.isPending}
-          >
-            {deleteMutation.isPending ? (
-              <>
-                <Loader2Icon className="animate-spin" />
-              </>
-            ) : (
-              <EllipsisVertical className="h-4 w-4" />
-            )}
+          <Button variant="ghost" className="size-4 mt-1">
+            <EllipsisVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" className="min-w-[6rem] mr-2">
@@ -74,10 +53,16 @@ const TodoItemMenu = ({
           {selectedTodos.size <= 1 && (
             <DropdownMenuItem
               onClick={async () => {
-                await deleteMutation.mutateAsync(todo);
+                await execute(
+                  deleteMutation({
+                    ...todo,
+                    order: todo.order as number,
+                    updatedAt: new Date(),
+                  })
+                );
+
                 selectedTodos.delete(todo.id);
               }}
-              disabled={deleteMutation.isPending}
               className="text-destructive"
             >
               Delete
