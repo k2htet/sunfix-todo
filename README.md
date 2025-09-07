@@ -43,7 +43,7 @@ Undo/Redo Functionality:
 
 A full action history stack tracks user actions like creating and deleting tasks.
 
-Keyboard shortcuts (Ctrl+Z / Ctrl+Y) allow users to easily undo and redo their actions.
+
 
 Task Selection:
 
