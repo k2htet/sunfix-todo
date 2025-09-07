@@ -1,8 +1,8 @@
-import { Task } from "@/db/schema";
 import { clsx, type ClassValue } from "clsx";
 import { formatDistanceToNow } from "date-fns";
 import { CheckCircle2, Circle, PlayCircle } from "lucide-react";
 import { twMerge } from "tailwind-merge";
+import { Task } from "../../type";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -21,7 +21,7 @@ export const isOverdue = (dueDate: Date | null): boolean => {
   return new Date() > dueDate;
 };
 
-export const getPriorityColor = (priority: Task["priority"]) => {
+export const getPriorityColor = (priority: Task[number]["priority"]) => {
   switch (priority) {
     case "High":
       return "text-destructive";
@@ -32,7 +32,7 @@ export const getPriorityColor = (priority: Task["priority"]) => {
   }
 };
 
-export const getStatusIcon = (status: Task["status"]) => {
+export const getStatusIcon = (status: Task[number]["status"]) => {
   switch (status) {
     case "Todo":
       return <Circle className="h-3 w-3" />;
